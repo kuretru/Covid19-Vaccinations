@@ -1,11 +1,14 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import WorldMap from "./components/WorldMap/WorldMap";
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <WorldMap />
+
         <img src={logo} className="App-logo" alt="logo" />
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
