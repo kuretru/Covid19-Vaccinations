@@ -1,32 +1,49 @@
 import React, { useState, useEffect, RefObject } from "react";
-import "./WorldMap.less";
+import "./WorldMap.css";
 import * as d3 from "d3";
 
 const WorldMap = () => {
   const WORLD_MAP = "/data/world-map.geo.json";
   const COUNTRY_DATA =
     "https://cdn.jsdelivr.net/gh/owid/covid-19-data/public/data/vaccinations/locations.csv";
+  const COUNTRY_NAME = "/data/country_name.csv";
+  const ALL_DATA = "https://cdn.jsdelivr.net/gh/owid/covid-19-data/public/data/owid-covid-data.csv";
   const VACCINATION_DATA =
     "https://cdn.jsdelivr.net/gh/owid/covid-19-data/public/data/vaccinations/vaccinations.csv";
 
   const country_data = new Map();
-  const max_data = {};
+  const max_data = {
+    total_vaccinations: 0,
+    total_vaccinations_per_hundred: 0,
+    daily_vaccinations_raw: 0,
+    daily_vaccinations: 0,
+    daily_vaccinations_per_million: 0,
+    people_vaccinated: 0,
+    people_vaccinated_per_hundred: 0,
+    people_fully_vaccinated: 0,
+    people_fully_vaccinated_per_hundred: 0,
+  };
 
   const [myState, setMyState] = useState<Boolean>(true);
   const ref: RefObject<HTMLDivElement> = React.createRef();
 
   const fetch_data = () => {
-    const fetch = Promise.all([
+    const create = (iso: string) => {
+      if (!country_data.has(iso)) {
+        country_data.set(iso, {
+          iso: iso,
+          chinese: "",
+          information: null,
+          vaccination: [],
+        });
+      }
+    };
+
+    Promise.all([
       d3.csv(COUNTRY_DATA).then((data: any) => {
         data.forEach((element: any) => {
           const iso: string = element.iso_code;
-          if (!country_data.has(iso)) {
-            country_data.set(iso, {
-              iso: iso,
-              information: null,
-              vaccination: [],
-            });
-          }
+          create(iso);
           country_data.get(iso).information = element;
         });
         console.log("country done");
@@ -34,22 +51,53 @@ const WorldMap = () => {
       d3.csv(VACCINATION_DATA).then((data: any) => {
         data.forEach((element: any) => {
           const iso: string = element.iso_code;
-          if (!country_data.has(iso)) {
-            country_data.set(iso, {
-              iso: iso,
-              information: null,
-              vaccination: [],
-            });
-          }
+          create(iso);
           country_data.get(iso).vaccination.push(element);
         });
         console.log("vaccination done");
       }),
+      d3.csv(COUNTRY_NAME).then((data: any) => {
+        data.forEach((element: any) => {
+          const iso: string = element.iso_code;
+          create(iso);
+          country_data.get(iso).chinese = element.chinese;
+          console.log("chinese done");
+        });
+      }),
     ]).then(() => {
       console.log("ok");
       country_data.forEach((element: any) => {
-        console.log(element);
+        const iso: string = element.iso;
+        if (iso.startsWith("OWID_") || element.vaccination.length === 0) {
+          return;
+        }
+        const lastDay = element.vaccination.slice(-1)[0];
+        max_data.total_vaccinations = Math.max(
+          max_data.total_vaccinations,
+          lastDay.total_vaccinations
+        );
+        max_data.total_vaccinations_per_hundred = Math.max(
+          max_data.total_vaccinations_per_hundred,
+          lastDay.total_vaccinations_per_hundred
+        );
+        max_data.people_vaccinated = Math.max(
+          max_data.people_vaccinated,
+          lastDay.people_vaccinated
+        );
+        max_data.people_vaccinated_per_hundred = Math.max(
+          max_data.people_vaccinated_per_hundred,
+          lastDay.people_vaccinated_per_hundred
+        );
+        max_data.people_fully_vaccinated = Math.max(
+          max_data.people_fully_vaccinated,
+          lastDay.people_fully_vaccinated
+        );
+        max_data.people_fully_vaccinated_per_hundred = Math.max(
+          max_data.people_fully_vaccinated_per_hundred,
+          lastDay.people_fully_vaccinated_per_hundred
+        );
       });
+      console.log(max_data);
     });
   };
 
@@ -63,7 +111,9 @@ const WorldMap = () => {
     const height = 500;
     const svg = d3.select("svg").attr("width", width).attr("height", height);
 
-    const color = d3.scaleQuantize([1, 10], d3.schemeBlues[9]);
+    const tip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
+
+    const color = d3.scaleQuantile([0, max_data.total_vaccinations], d3.schemeBlues[9]);
 
     const projection = d3.geoMercator().center([0, 5]).scale(150);
     const path = d3.geoPath().projection(projection);
@@ -77,9 +127,44 @@ const WorldMap = () => {
         .data(data.features)
         .join((enter) => {
           const p = enter.append("path");
-          p.on("mouseenter", (e, d: any) => {
-            console.log(d);
-            d3.select(d).raise();
+          p.on("mouseover", function (event, d: any) {
+            const iso = d.properties.ISO_A3;
+            if (!country_data.has(iso) || country_data.get(iso).vaccination.length === 0) {
+              return;
+            }
+            const latest = country_data.get(iso).vaccination.slice(-1)[0];
+            d3.select(this)
+              .transition()
+              .duration(200)
+              .style("opacity", 0.6)
+              .attr("stroke", "black");
+            tip.transition().duration(200).style("opacity", 0.9);
+            tip
+              .style("left", event.pageX + "px")
+              .style("top", event.pageY - 28 + "px")
+              .html(
+                "国家：" +
+                  country_data.get(iso).chinese +
+                  "<br />" +
+                  "接种人次：" +
+                  (latest.total_vaccinations
+                    ? parseInt(latest.total_vaccinations).toLocaleString()
+                    : "暂无数据") +
+                  "<br />" +
+                  "接种人数：" +
+                  (latest.people_vaccinated
+                    ? parseInt(latest.people_vaccinated).toLocaleString()
+                    : "暂无数据") +
+                  "<br />" +
+                  "完成接种人数：" +
+                  (latest.people_fully_vaccinated
+                    ? parseInt(latest.people_fully_vaccinated).toLocaleString()
+                    : "暂无数据")
+              );
+          });
+          p.on("mouseout", function () {
+            d3.select(this).transition().duration(500).style("opacity", 1).attr("stroke", "none");
+            tip.transition().duration(500).style("opacity", 0);
           });
           p.append("title");
           return p;
@@ -87,10 +172,9 @@ const WorldMap = () => {
         .attr("d", (d: any) => path(d))
         .style("fill", (d: any) => {
           const iso: string = d.properties.ISO_A3;
-          if (country_data.has(iso)) {
+          if (country_data.has(iso) && country_data.get(iso).vaccination.length > 0) {
             const latest = country_data.get(iso).vaccination.slice(-1)[0];
-            // return color(latest.total_vaccinations);
-            return color(4);
+            return color(latest.total_vaccinations);
           }
           return color(0);
         });
