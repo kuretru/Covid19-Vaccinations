@@ -2,7 +2,7 @@ import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import WorldMap from "./components/WorldMap/WorldMap";
-import { Layout, Menu } from "antd";
+import { Layout, Menu, Tabs } from "antd";
 import {
   ReconciliationOutlined,
   UserAddOutlined,
@@ -19,10 +19,11 @@ import {
 import SubMenu from "antd/lib/menu/SubMenu";
 
 const { Header, Footer, Sider, Content } = Layout;
+const { TabPane } = Tabs;
 
 class App extends React.Component {
   state = {
-    type: "vaccinations",
+    type: "total_vaccinations",
   };
   handlerClick = (e: any) => {
     this.setState({ type: e.key });
@@ -48,22 +49,22 @@ class App extends React.Component {
                   mode="inline"
                   onClick={this.handlerClick}
                   defaultOpenKeys={["epidemic", "vaccine", "others"]}
-                  defaultSelectedKeys={["vaccinations"]}
+                  defaultSelectedKeys={["total_vaccinations"]}
                   style={{ height: "100%" }}
                 >
                   <SubMenu key="epidemic" title="疫情数据" icon={<ReconciliationOutlined />}>
-                    <Menu.Item key="confirmed" icon={<UserAddOutlined />}>
+                    <Menu.Item key="total_cases" icon={<UserAddOutlined />}>
                       确诊数据
                     </Menu.Item>
-                    <Menu.Item key="deaths" icon={<UserDeleteOutlined />}>
+                    <Menu.Item key="total_deaths" icon={<UserDeleteOutlined />}>
                       致死数据
                     </Menu.Item>
                   </SubMenu>
                   <SubMenu key="vaccine" title="疫苗数据" icon={<MedicineBoxOutlined />}>
-                    <Menu.Item key="vaccinations" icon={<PushpinOutlined />}>
+                    <Menu.Item key="total_vaccinations" icon={<PushpinOutlined />}>
                       接种数据
                     </Menu.Item>
-                    <Menu.Item key="fully_vaccinated" icon={<SmileOutlined />}>
+                    <Menu.Item key="people_vaccinated" icon={<SmileOutlined />}>
                       完成接种数据
                     </Menu.Item>
                   </SubMenu>
@@ -74,7 +75,7 @@ class App extends React.Component {
                     <Menu.Item key="median_age" icon={<PayCircleOutlined />}>
                       平均年龄
                     </Menu.Item>
-                    <Menu.Item key="gdp" icon={<PercentageOutlined />}>
+                    <Menu.Item key="gdp_per_capita" icon={<PercentageOutlined />}>
                       人均GDP
                     </Menu.Item>
                     <Menu.Item key="life_expectancy" icon={<ContactsOutlined />}>
@@ -84,7 +85,17 @@ class App extends React.Component {
                 </Menu>
               </Sider>
               <Content style={{ padding: "10px", minHeight: 280 }}>
-                <WorldMap type={this.state.type} />
+                <Tabs defaultActiveKey="map" type="card">
+                  <TabPane tab="地图" key="map">
+                    <WorldMap type={this.state.type} />
+                  </TabPane>
+                  <TabPane tab="图表" key="chart">
+                    图表
+                  </TabPane>
+                  <TabPane tab="表格" key="table">
+                    表格
+                  </TabPane>
+                </Tabs>
               </Content>
             </Layout>
           </Content>
