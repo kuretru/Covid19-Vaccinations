@@ -3,7 +3,7 @@
 }
 
 .App-logo {
-  height: 40vmin;
+  height: 10vmin;
   pointer-events: none;
 }
 
@@ -36,4 +36,44 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+h1 {
+  color: black;
+}
+
+div.main {
+  display: grid;
+  width: 100%;
+  height: 50vh;
+  max-width: 75rem;
+  max-height: 900px;
+  min-height: 480px;
+  grid-template-columns: 1fr 4fr;
+  grid-template-rows: 1fr 9fr;
+  grid-row-gap: 10px;
+  grid-column-gap: 10px;
+}
+
+div.main div {
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px rgb(0 0 0 /10%), 0 2px 2px rgb(0 0 0 /8%);
+}
+
+div.header {
+  margin: 10px 0 0 10px;
+  min-width: 200px;
+}
+
+div.control {
+  margin: 10px 10px 0 0;
+}
+
+div.picker {
+  margin: 0 0 10px 10px;
+}
+
+div.chart {
+  margin: 0 10px 10px 0;
+  min-height: 600px;
 }

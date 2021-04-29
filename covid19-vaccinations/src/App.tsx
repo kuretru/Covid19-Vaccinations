@@ -7,20 +7,18 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <WorldMap />
+        <h1>COVID-19疫苗数据可视化</h1>
 
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <div className="main">
+          <div className="header">
+            <img src={logo} className="App-logo" alt="logo" />
+          </div>
+          <div className="control"></div>
+          <div className="picker"></div>
+          <div className="chart">
+            <WorldMap />
+          </div>
+        </div>
       </header>
     </div>
   );
