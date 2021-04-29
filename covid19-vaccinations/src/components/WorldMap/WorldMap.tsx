@@ -1,5 +1,6 @@
 import React, { RefObject } from "react";
 import "./WorldMap.css";
+import Translate from "./translate.json";
 import * as d3 from "d3";
 
 const WORLD_MAP = "/data/world-map.geo.json";
@@ -7,7 +8,8 @@ const COUNTRY_NAME = "/data/country_name.csv";
 // const ALL_DATA = "https://github.com/owid/covid-19-data/raw/master/public/data/owid-covid-data.csv";
 const ALL_DATA = "/data/owid-covid-data.csv";
 
-const types = [
+const translate: any = Translate;
+const TYPES = [
   "total_cases",
   "total_deaths",
   "total_vaccinations",
@@ -17,16 +19,39 @@ const types = [
   "gdp_per_capita",
   "life_expectancy",
 ];
-
-const colors: any = {
-  total_cases: d3.schemeOranges[9],
-  total_deaths: d3.schemeReds[9],
-  total_vaccinations: d3.schemeBlues[9],
-  people_vaccinated: d3.schemeGnBu[9],
-  population: d3.schemePuBu[9],
-  median_age: d3.schemeGreens[9],
-  gdp_per_capita: d3.schemeYlGnBu[9],
-  life_expectancy: d3.schemeRdPu[9],
+const PROFILES: any = {
+  total_cases: {
+    color: d3.schemeOranges[9],
+    properties: ["total_cases", "total_deaths", "hosp_patients"],
+  },
+  total_deaths: {
+    color: d3.schemeReds[9],
+    properties: ["total_cases", "total_deaths", "hosp_patients"],
+  },
+  total_vaccinations: {
+    color: d3.schemeBlues[9],
+    properties: ["total_vaccinations", "people_vaccinated", "people_fully_vaccinated"],
+  },
+  people_vaccinated: {
+    color: d3.schemeGnBu[9],
+    properties: ["total_vaccinations", "people_vaccinated", "people_fully_vaccinated"],
+  },
+  population: {
+    color: d3.schemePuBu[9],
+    properties: ["population", "population_density"],
+  },
+  median_age: {
+    color: d3.schemeGreens[9],
+    properties: ["median_age", "aged_65_older", "aged_70_older"],
+  },
+  gdp_per_capita: {
+    color: d3.schemeYlGnBu[9],
+    properties: ["gdp_per_capita", "hospital_beds_per_thousand", "handwashing_facilities"],
+  },
+  life_expectancy: {
+    color: d3.schemeRdPu[9],
+    properties: ["life_expectancy", "cardiovasc_death_rate", "diabetes_prevalence"],
+  },
 };
 
 class WorldMap extends React.Component<any, any> {
@@ -91,7 +116,7 @@ class WorldMap extends React.Component<any, any> {
         }
         const lastDay: any = element.data.slice(-1)[0];
         const maxData: any = this.state.maxData;
-        types.forEach((element: string) => {
+        TYPES.forEach((element: string) => {
           maxData[element] = Math.max(maxData[element], lastDay[element]);
         });
       });
@@ -191,8 +216,10 @@ class WorldMap extends React.Component<any, any> {
     });
 
     // 图例相关
-    const color: any = d3.scaleQuantize([0, maxData[type]], colors[type]).unknown("#eeeeee");
-    this.renderLegend(colors[type], width, height);
+    const color: any = d3
+      .scaleQuantize([0, maxData[type]], PROFILES[type].color)
+      .unknown("#eeeeee");
+    this.renderLegend(PROFILES[type].color, width, height);
 
     // 地图相关
     const projection = d3.geoMercator();
@@ -226,30 +253,15 @@ class WorldMap extends React.Component<any, any> {
               return;
             }
             const latest = that.state.countryData.get(iso).data.slice(-1)[0];
-            tip
-              .append("p")
-              .text(
-                "接种人次：" +
-                  (latest.total_vaccinations
-                    ? parseInt(latest.total_vaccinations).toLocaleString()
-                    : "暂无数据")
-              );
-            tip
-              .append("p")
-              .text(
-                "接种人数：" +
-                  (latest.people_vaccinated
-                    ? parseInt(latest.people_vaccinated).toLocaleString()
-                    : "暂无数据")
-              );
-            tip
-              .append("p")
-              .text(
-                "完成接种人数：" +
-                  (latest.people_fully_vaccinated
-                    ? parseInt(latest.people_fully_vaccinated).toLocaleString()
-                    : "暂无数据")
-              );
+            PROFILES[type].properties.forEach((element: any) => {
+              tip
+                .append("p")
+                .text(
+                  translate[element] +
+                    "：" +
+                    (latest[element] ? parseInt(latest[element]).toLocaleString() : "暂无数据")
+                );
+            });
           });
           p.on("mouseout", function () {
             d3.select(this)
