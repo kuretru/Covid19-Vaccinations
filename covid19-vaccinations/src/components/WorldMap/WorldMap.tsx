@@ -108,6 +108,7 @@ const WorldMap = () => {
     const width = document.getElementsByClassName("chart")[0].clientWidth;
     const height = document.getElementsByClassName("chart")[0].clientHeight;
     const svg = d3
+      .select(".chart")
       .select("svg")
       .attr("width", width)
       .attr("height", height - 100);
@@ -117,6 +118,7 @@ const WorldMap = () => {
 
     // 缩放相关
 
+    // 图例相关
     const color = d3
       .scaleQuantize([0, max_data.total_vaccinations], d3.schemeBlues[9])
       .unknown("#eeeeee");
@@ -126,7 +128,8 @@ const WorldMap = () => {
     const path = d3.geoPath().projection(projection);
 
     d3.json(WORLD_MAP).then((data: any) => {
-      projection.fitSize([width, height - 100], data);
+      projection.fitSize([width, height], data);
+      projection.scale(100);
       svg
         .append("g")
         .selectAll("path")
@@ -174,7 +177,11 @@ const WorldMap = () => {
               );
           });
           p.on("mouseout", function () {
-            d3.select(this).transition().duration(500).style("opacity", 1).attr("stroke", "#dddddd");
+            d3.select(this)
+              .transition()
+              .duration(500)
+              .style("opacity", 1)
+              .attr("stroke", "#dddddd");
             tip.transition().duration(500).style("opacity", 0);
             tip.selectAll("p").remove();
           });
@@ -189,7 +196,7 @@ const WorldMap = () => {
           }
           return color(NaN);
         })
-        .attr("stroke", "#dddddd")
+        .attr("stroke", "#dddddd");
     });
   };
 

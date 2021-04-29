@@ -3,6 +3,7 @@ import logo from "./logo.svg";
 import "./App.css";
 import WorldMap from "./components/WorldMap/WorldMap";
 import { Layout, Menu } from "antd";
+import { UserAddOutlined, SmileOutlined } from "@ant-design/icons";
 import SubMenu from "antd/lib/menu/SubMenu";
 
 const { Header, Footer, Sider, Content } = Layout;
@@ -18,7 +19,7 @@ const App: FC = () => (
       </Header>
       <Content style={{ padding: "25px 25px 0 25px" }}>
         <Layout className="site-layout-background" style={{ padding: "24px 0" }}>
-          <Sider width={200}>
+          <Sider width={180}>
             <Menu
               mode="inline"
               defaultOpenKeys={["vaccinated"]}
@@ -26,8 +27,12 @@ const App: FC = () => (
               style={{ height: "100%" }}
             >
               <SubMenu key="vaccinated" title="疫苗数据">
-                <Menu.Item key="vaccineDoses">疫苗注射情况</Menu.Item>
-                <Menu.Item key="2">完成注射</Menu.Item>
+                <Menu.Item key="vaccineDoses" icon={<UserAddOutlined />}>
+                  疫苗注射情况
+                </Menu.Item>
+                <Menu.Item key="2" icon={<SmileOutlined />}>
+                  完成注射
+                </Menu.Item>
               </SubMenu>
               <SubMenu key="confirmed" title="确诊数据">
                 <Menu.Item key="3">疫苗数据</Menu.Item>
@@ -35,7 +40,7 @@ const App: FC = () => (
               </SubMenu>
             </Menu>
           </Sider>
-          <Content style={{ padding: "24px", minHeight: 280 }}>
+          <Content style={{ padding: "10px", minHeight: 280 }}>
             <div className="chart">
               <WorldMap />
             </div>
@@ -48,25 +53,5 @@ const App: FC = () => (
     </Layout>
   </div>
 );
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <h1>COVID-19疫苗数据可视化</h1>
-
-//         <div className="main">
-//           <div className="header">
-//             <img src={logo} className="App-logo" alt="logo" />
-//           </div>
-//           <div className="control"></div>
-//           <div className="picker"></div>
-//           <div className="chart">
-//           </div>
-//         </div>
-//       </header>
-//     </div>
-//   );
-// }
 
 export default App;
