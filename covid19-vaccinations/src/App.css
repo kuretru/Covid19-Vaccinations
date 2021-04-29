@@ -22,6 +22,10 @@
   }
 }
 
+.header {
+  height: 70px;
+}
+
 .logo {
   float: left;
   height: 31px;

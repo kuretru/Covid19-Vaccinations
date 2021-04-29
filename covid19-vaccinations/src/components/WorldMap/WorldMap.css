@@ -2,6 +2,10 @@
   height: 600px;
 }
 
+.label {
+  text-anchor: end;
+}
+
 .tooltip {
   position: absolute;
   text-align: center;

@@ -117,11 +117,61 @@ const WorldMap = () => {
     tip.append("span");
 
     // 缩放相关
+    console.log(d3.schemeBlues);
 
     // 图例相关
     const color = d3
       .scaleQuantize([0, max_data.total_vaccinations], d3.schemeBlues[9])
       .unknown("#eeeeee");
+    const legend = d3
+      .select(".chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", 50)
+      .append("g");
+    legend
+      .append("text")
+      .attr("class", "label")
+      .attr("x", width / 2 - 300 + 93)
+      .attr("y", 20)
+      .text("无数据");
+    legend
+      .append("text")
+      .attr("class", "label")
+      .attr("x", width / 2 - 300 + 165)
+      .attr("y", 20)
+      .text("0");
+    legend
+      .append("text")
+      .attr("class", "label")
+      .attr("x", width / 2 - 300 + 380)
+      .attr("y", 20)
+      .text((max_data.total_vaccinations / 2).toLocaleString());
+    legend
+      .append("text")
+      .attr("class", "label")
+      .attr("x", width / 2 - 300 + 570)
+      .attr("y", 20)
+      .text(max_data.total_vaccinations.toLocaleString());
+    legend
+      .append("rect")
+      .attr("x", width / 2 - 300 + 50)
+      .attr("y", 30)
+      .attr("width", 45)
+      .attr("height", 15)
+      .attr("stroke", "black")
+      .style("fill", "#dddddd");
+
+    for (let i = 0; i < d3.schemeBlues[9].length; i++) {
+      legend
+        .append("rect")
+        .attr("x", width / 2 - 300 + 140 + 45 * i)
+        .attr("y", 30)
+        .attr("width", 45)
+        .attr("height", 15)
+        .attr("stroke", "black")
+        .style("fill", d3.schemeBlues[9][i]);
+    }
 
     // 地图相关
     const projection = d3.geoMercator();
