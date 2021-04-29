@@ -1,130 +1,91 @@
-import React, { useState, useEffect, RefObject } from "react";
+import React, { RefObject } from "react";
 import "./WorldMap.css";
 import * as d3 from "d3";
-import { color } from "d3";
 
-const WorldMap = () => {
-  const WORLD_MAP = "/data/world-map.geo.json";
-  const COUNTRY_DATA =
-    "https://cdn.jsdelivr.net/gh/owid/covid-19-data/public/data/vaccinations/locations.csv";
-  const COUNTRY_NAME = "/data/country_name.csv";
-  const ALL_DATA = "https://cdn.jsdelivr.net/gh/owid/covid-19-data/public/data/owid-covid-data.csv";
-  const VACCINATION_DATA =
-    "https://cdn.jsdelivr.net/gh/owid/covid-19-data/public/data/vaccinations/vaccinations.csv";
+const WORLD_MAP = "/data/world-map.geo.json";
+const COUNTRY_NAME = "/data/country_name.csv";
+// const VACCINATION_DATA =
+//   "https://cdn.jsdelivr.net/gh/owid/covid-19-data/public/data/vaccinations/vaccinations.csv";
+// const ALL_DATA = "https://github.com/owid/covid-19-data/raw/master/public/data/owid-covid-data.csv";
+const ALL_DATA = "/data/owid-covid-data.csv";
 
-  const country_data = new Map();
-  const max_data = {
-    total_vaccinations: 0,
-    total_vaccinations_per_hundred: 0,
-    daily_vaccinations_raw: 0,
-    daily_vaccinations: 0,
-    daily_vaccinations_per_million: 0,
-    people_vaccinated: 0,
-    people_vaccinated_per_hundred: 0,
-    people_fully_vaccinated: 0,
-    people_fully_vaccinated_per_hundred: 0,
+class WorldMap extends React.Component<any, any> {
+  state = {
+    isLoading: true,
+    countryData: new Map(),
+    maxData: {
+      total_vaccinations: 0,
+      total_vaccinations_per_hundred: 0,
+      daily_vaccinations_raw: 0,
+      daily_vaccinations: 0,
+      daily_vaccinations_per_million: 0,
+      people_vaccinated: 0,
+      people_vaccinated_per_hundred: 0,
+      people_fully_vaccinated: 0,
+      people_fully_vaccinated_per_hundred: 0,
+    },
+    worldMap: {},
   };
 
-  const [myState, setMyState] = useState<Boolean>(true);
-  const ref: RefObject<HTMLDivElement> = React.createRef();
+  constructor(props: any) {
+    super(props);
+    this.fetchData();
+  }
 
-  useEffect(() => {
-    const create = (iso: string) => {
-      if (!country_data.has(iso)) {
-        country_data.set(iso, {
-          iso: iso,
-          chinese: "",
-          information: null,
-          vaccination: [],
-        });
-      }
-    };
+  create(iso: string) {
+    if (!this.state.countryData.has(iso)) {
+      this.state.countryData.set(iso, {
+        iso: iso,
+        chinese: "",
+        data: [],
+      });
+    }
+  }
 
+  fetchData() {
     Promise.all([
-      d3.csv(COUNTRY_DATA).then((data: any) => {
-        data.forEach((element: any) => {
-          const iso: string = element.iso_code;
-          create(iso);
-          country_data.get(iso).information = element;
-        });
-        console.log("fetch country done");
-      }),
-      d3.csv(VACCINATION_DATA).then((data: any) => {
-        data.forEach((element: any) => {
-          const iso: string = element.iso_code;
-          create(iso);
-          country_data.get(iso).vaccination.push(element);
-        });
-        console.log("fetch vaccination done");
+      d3.json(WORLD_MAP).then((data: any) => {
+        this.setState({ worldMap: data });
+        console.log("Fetch world map done");
       }),
       d3.csv(COUNTRY_NAME).then((data: any) => {
         data.forEach((element: any) => {
           const iso: string = element.iso_code;
-          create(iso);
-          country_data.get(iso).chinese = element.chinese;
+          this.create(iso);
+          this.state.countryData.get(iso).chinese = element.chinese;
         });
-        console.log("fetch chinese done");
+        console.log("Fetch Chinese name done");
       }),
-    ])
-      .then(() => {
-        console.log("ok");
-        country_data.forEach((element: any) => {
-          const iso: string = element.iso;
-          if (iso.startsWith("OWID_") || element.vaccination.length === 0) {
-            return;
-          }
-          const lastDay = element.vaccination.slice(-1)[0];
-          max_data.total_vaccinations = Math.max(
-            max_data.total_vaccinations,
-            lastDay.total_vaccinations
-          );
-          max_data.total_vaccinations_per_hundred = Math.max(
-            max_data.total_vaccinations_per_hundred,
-            lastDay.total_vaccinations_per_hundred
-          );
-          max_data.people_vaccinated = Math.max(
-            max_data.people_vaccinated,
-            lastDay.people_vaccinated
-          );
-          max_data.people_vaccinated_per_hundred = Math.max(
-            max_data.people_vaccinated_per_hundred,
-            lastDay.people_vaccinated_per_hundred
-          );
-          max_data.people_fully_vaccinated = Math.max(
-            max_data.people_fully_vaccinated,
-            lastDay.people_fully_vaccinated
-          );
-          max_data.people_fully_vaccinated_per_hundred = Math.max(
-            max_data.people_fully_vaccinated_per_hundred,
-            lastDay.people_fully_vaccinated_per_hundred
-          );
+      d3.csv(ALL_DATA).then((data: any) => {
+        data.forEach((element: any) => {
+          const iso: string = element.iso_code;
+          this.create(iso);
+          this.state.countryData.get(iso).data.push(element);
         });
-        console.log(max_data);
-      })
-      .then(() => draw());
-  });
+        console.log("Fetch all data done");
+      }),
+    ]).then(() => {
+      console.log("Start processing data");
+      this.state.countryData.forEach((element: any) => {
+        const iso: string = element.iso;
+        if (iso.startsWith("OWID_") || element.data.length === 0) {
+          return;
+        }
+        const lastDay = element.data.slice(-1)[0];
+        const maxData = this.state.maxData;
+        maxData.total_vaccinations = Math.max(
+          maxData.total_vaccinations,
+          lastDay.total_vaccinations
+        );
+      });
+      this.setState({ isLoading: false });
+      console.log("Max data is: ", this.state.maxData);
+    });
+  }
 
-  const draw = () => {
-    const width = document.getElementsByClassName("chart")[0].clientWidth;
-    const height = document.getElementsByClassName("chart")[0].clientHeight;
-    const svg = d3
-      .select(".chart")
-      .select("svg")
-      .attr("width", width)
-      .attr("height", height - 100);
-
-    const tip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
-    tip.append("span");
-
-    // 缩放相关
-    console.log(d3.schemeBlues);
-
-    // 图例相关
-    const color = d3
-      .scaleQuantize([0, max_data.total_vaccinations], d3.schemeBlues[9])
-      .unknown("#eeeeee");
+  renderLegend(color: ReadonlyArray<string>, width: any, height: any) {
     const legend = d3
-      .select(".chart")
+      .select(".WorldMap")
       .append("svg")
       .attr("width", width)
       .attr("height", 50)
@@ -146,13 +107,14 @@ const WorldMap = () => {
       .attr("class", "label")
       .attr("x", width / 2 - 300 + 380)
       .attr("y", 20)
-      .text((max_data.total_vaccinations / 2).toLocaleString());
+      .text((this.state.maxData.total_vaccinations / 2).toLocaleString());
     legend
       .append("text")
       .attr("class", "label")
       .attr("x", width / 2 - 300 + 570)
       .attr("y", 20)
-      .text(max_data.total_vaccinations.toLocaleString());
+      .text(this.state.maxData.total_vaccinations.toLocaleString());
+
     legend
       .append("rect")
       .attr("x", width / 2 - 300 + 50)
@@ -160,8 +122,7 @@ const WorldMap = () => {
       .attr("width", 45)
       .attr("height", 15)
       .attr("stroke", "black")
-      .style("fill", "#dddddd");
-
+      .style("fill", "#eeeeee");
     for (let i = 0; i < d3.schemeBlues[9].length; i++) {
       legend
         .append("rect")
@@ -170,8 +131,50 @@ const WorldMap = () => {
         .attr("width", 45)
         .attr("height", 15)
         .attr("stroke", "black")
-        .style("fill", d3.schemeBlues[9][i]);
+        .style("fill", color[i]);
     }
+  }
+
+  render() {
+    if (this.state.isLoading) {
+      console.log("Loading ...");
+      return <div className="WorldMap"></div>;
+    }
+    console.log("Start rendering world map, type " + this.props.type);
+    const that = this;
+    const ref: RefObject<HTMLDivElement> = React.createRef();
+
+    const width = document.getElementsByClassName("WorldMap")[0].clientWidth;
+    const height = document.getElementsByClassName("WorldMap")[0].clientHeight;
+    d3.select(".WorldMap").selectAll("svg").remove();
+
+    const svg = d3
+      .select(".WorldMap")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height - 100);
+
+    // ToolTip
+    d3.selectAll(".tooltip").remove();
+    const tip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
+    tip.append("span");
+
+    // 缩放相关
+    const zoom = d3
+      .zoom()
+      .on("zoom", (event) => {
+        svg.attr("transform", event.transform);
+      })
+      .scaleExtent([0.5, 1.5]);
+    svg.call((d: any) => {
+      zoom(d);
+    });
+
+    // 图例相关
+    const color = d3
+      .scaleQuantize([0, this.state.maxData.total_vaccinations], d3.schemeBlues[9])
+      .unknown("#eeeeee");
+    this.renderLegend(d3.schemeBlues[9], width, height);
 
     // 地图相关
     const projection = d3.geoMercator();
@@ -195,12 +198,16 @@ const WorldMap = () => {
               .attr("stroke", "black");
             tip.transition().duration(200).style("opacity", 0.9);
             tip.style("left", event.pageX + "px").style("top", event.pageY - 28 + "px");
-            tip.select("span").text(country_data.get(iso).chinese);
-            if (!country_data.has(iso) || country_data.get(iso).vaccination.length === 0) {
+
+            if (!that.state.countryData.has(iso)) {
+              return;
+            }
+            tip.select("span").text(that.state.countryData.get(iso).chinese);
+            if (that.state.countryData.get(iso).data.length === 0) {
               tip.append("p").text("暂无数据");
               return;
             }
-            const latest = country_data.get(iso).vaccination.slice(-1)[0];
+            const latest = that.state.countryData.get(iso).data.slice(-1)[0];
             tip
               .append("p")
               .text(
@@ -240,21 +247,17 @@ const WorldMap = () => {
         .attr("d", (d: any) => path(d))
         .style("fill", (d: any) => {
           const iso: string = d.properties.ISO_A3;
-          if (country_data.has(iso) && country_data.get(iso).vaccination.length > 0) {
-            const latest = country_data.get(iso).vaccination.slice(-1)[0];
+          if (that.state.countryData.has(iso) && that.state.countryData.get(iso).data.length > 0) {
+            const latest = that.state.countryData.get(iso).data.slice(-1)[0];
             return color(latest.total_vaccinations);
           }
           return color(NaN);
         })
         .attr("stroke", "#dddddd");
     });
-  };
 
-  return (
-    <div className="WorldMap" ref={ref}>
-      <svg />
-    </div>
-  );
-};
+    return <div className="WorldMap" ref={ref}></div>;
+  }
+}
 
 export default WorldMap;
