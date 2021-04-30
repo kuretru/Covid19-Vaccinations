@@ -2,6 +2,9 @@ import React, { RefObject } from "react";
 import "./WorldMap.css";
 import Translate from "./translate.json";
 import * as d3 from "d3";
+import { Select } from "antd";
+
+const { Option } = Select;
 
 const WORLD_MAP = "/data/world-map.geo.json";
 const COUNTRY_NAME = "/data/country_name.csv";
@@ -52,6 +55,15 @@ const PROFILES: any = {
     color: d3.schemeRdPu[9],
     properties: ["life_expectancy", "cardiovasc_death_rate", "diabetes_prevalence"],
   },
+};
+const AREA: any = {
+  world: "none",
+  asia: "translate(-3200, -680) scale(4)",
+  europe: "translate(-2590, -450) scale(4)",
+  north_america: "translate(-670, -170) scale(2.3)",
+  south_america: "translate(-1350, -760) scale(3)",
+  africa: "translate(-1820, -600) scale(3)",
+  oceania: "translate(-5560, -1760) scale(6)",
 };
 
 class WorldMap extends React.Component<any, any> {
@@ -124,6 +136,11 @@ class WorldMap extends React.Component<any, any> {
       console.log("Max data is: ", this.state.maxData);
     });
   }
+
+  handleChange = (e: any) => {
+    const g = d3.select(".WorldMap").select("svg").select("g");
+    g.attr("transform", AREA[e]);
+  };
 
   renderLegend(color: ReadonlyArray<string>, type: any, width: any, height: any) {
     const legend = d3
@@ -212,9 +229,7 @@ class WorldMap extends React.Component<any, any> {
         svg.select("g").attr("transform", event.transform);
       })
       .scaleExtent([0.5, 6]);
-    svg.call((d: any) => {
-      zoom(d);
-    });
+    svg.call((d: any) => zoom(d));
 
     // 图例相关
     const color: any = d3
@@ -226,68 +241,70 @@ class WorldMap extends React.Component<any, any> {
     const projection = d3.geoMercator();
     const path = d3.geoPath().projection(projection);
 
-    d3.json(WORLD_MAP).then((data: any) => {
-      projection.fitSize([width, height], data);
-      projection.scale(100);
-      svg
-        .append("g")
-        .selectAll("path")
-        .data(data.features)
-        .join((enter) => {
-          const p = enter.append("path");
-          p.on("mouseover", function (event, d: any) {
-            const iso = d.properties.ISO_A3;
-            d3.select(this)
-              .transition()
-              .duration(200)
-              .style("opacity", 0.6)
-              .attr("stroke", "black");
-            tip.transition().duration(200).style("opacity", 0.9);
-            tip.style("left", event.pageX + "px").style("top", event.pageY - 28 + "px");
+    projection.fitSize([width, height], this.state.worldMap);
+    projection.scale(100);
+    svg
+      .append("g")
+      .selectAll("path")
+      .data(this.state.worldMap.features)
+      .join((enter) => {
+        const p = enter.append("path");
+        p.on("mouseover", function (event, d: any) {
+          const iso = d.properties.ISO_A3;
+          d3.select(this).transition().duration(200).style("opacity", 0.6).attr("stroke", "black");
+          tip.transition().duration(200).style("opacity", 0.9);
+          tip.style("left", event.pageX + "px").style("top", event.pageY - 28 + "px");
 
-            if (!that.state.countryData.has(iso)) {
-              return;
-            }
-            tip.select("span").text(that.state.countryData.get(iso).chinese);
-            if (that.state.countryData.get(iso).data.length === 0) {
-              tip.append("p").text("暂无数据");
-              return;
-            }
-            const latest = that.state.countryData.get(iso).data.slice(-1)[0];
-            PROFILES[type].properties.forEach((element: any) => {
-              tip
-                .append("p")
-                .text(
-                  translate[element] +
-                    "：" +
-                    (latest[element] ? parseInt(latest[element]).toLocaleString() : "暂无数据")
-                );
-            });
-          });
-          p.on("mouseout", function () {
-            d3.select(this)
-              .transition()
-              .duration(500)
-              .style("opacity", 1)
-              .attr("stroke", "#dddddd");
-            tip.transition().duration(500).style("opacity", 0);
-            tip.selectAll("p").remove();
-          });
-          return p;
-        })
-        .attr("d", (d: any) => path(d))
-        .style("fill", (d: any) => {
-          const iso: string = d.properties.ISO_A3;
-          if (that.state.countryData.has(iso) && that.state.countryData.get(iso).data.length > 0) {
-            const latest = that.state.countryData.get(iso).data.slice(-1)[0];
-            return color(latest[that.props.type]);
+          if (!that.state.countryData.has(iso)) {
+            return;
           }
-          return color(NaN);
-        })
-        .attr("stroke", "#dddddd");
-    });
+          tip.select("span").text(that.state.countryData.get(iso).chinese);
+          if (that.state.countryData.get(iso).data.length === 0) {
+            tip.append("p").text("暂无数据");
+            return;
+          }
+          const latest = that.state.countryData.get(iso).data.slice(-1)[0];
+          PROFILES[type].properties.forEach((element: any) => {
+            tip
+              .append("p")
+              .text(
+                translate[element] +
+                  "：" +
+                  (latest[element] ? parseInt(latest[element]).toLocaleString() : "暂无数据")
+              );
+          });
+        });
+        p.on("mouseout", function () {
+          d3.select(this).transition().duration(500).style("opacity", 1).attr("stroke", "#dddddd");
+          tip.transition().duration(500).style("opacity", 0);
+          tip.selectAll("p").remove();
+        });
+        return p;
+      })
+      .attr("d", (d: any) => path(d))
+      .style("fill", (d: any) => {
+        const iso: string = d.properties.ISO_A3;
+        if (that.state.countryData.has(iso) && that.state.countryData.get(iso).data.length > 0) {
+          const latest = that.state.countryData.get(iso).data.slice(-1)[0];
+          return color(latest[that.props.type]);
+        }
+        return color(NaN);
+      })
+      .attr("stroke", "#dddddd");
 
-    return <div className="WorldMap" ref={ref}></div>;
+    return (
+      <div className="WorldMap" ref={ref}>
+        <Select defaultValue="world" onChange={this.handleChange}>
+          <Option value="world">全球</Option>
+          <Option value="asia">亚洲</Option>
+          <Option value="europe">欧洲</Option>
+          <Option value="north_america">北美洲</Option>
+          <Option value="south_america">南美洲</Option>
+          <Option value="africa">非洲</Option>
+          <Option value="oceania">大洋洲</Option>
+        </Select>
+      </div>
+    );
   }
 }
 

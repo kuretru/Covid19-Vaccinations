@@ -2,6 +2,12 @@
   height: 600px;
 }
 
+.ant-select {
+  position: absolute;
+  left: 300px;
+  top: 200px;
+}
+
 .label {
   text-anchor: end;
 }

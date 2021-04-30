@@ -26,7 +26,7 @@ class App extends React.Component {
   state = {
     type: "total_vaccinations",
   };
-  handlerClick = (e: any) => {
+  handleClick = (e: any) => {
     this.setState({ type: e.key });
   };
   render() {
@@ -48,7 +48,7 @@ class App extends React.Component {
               <Sider width={180}>
                 <Menu
                   mode="inline"
-                  onClick={this.handlerClick}
+                  onClick={this.handleClick}
                   defaultOpenKeys={["epidemic", "vaccine", "others"]}
                   defaultSelectedKeys={["total_vaccinations"]}
                   style={{ height: "100%" }}
