@@ -125,7 +125,7 @@ class WorldMap extends React.Component<any, any> {
     });
   }
 
-  renderLegend(color: ReadonlyArray<string>, width: any, height: any) {
+  renderLegend(color: ReadonlyArray<string>, type: any, width: any, height: any) {
     const legend = d3
       .select(".WorldMap")
       .append("svg")
@@ -149,13 +149,13 @@ class WorldMap extends React.Component<any, any> {
       .attr("class", "label")
       .attr("x", width / 2 - 300 + 380)
       .attr("y", 20)
-      .text((this.state.maxData.total_vaccinations / 2).toLocaleString());
+      .text((this.state.maxData[type] / 2).toLocaleString());
     legend
       .append("text")
       .attr("class", "label")
       .attr("x", width / 2 - 300 + 570)
       .attr("y", 20)
-      .text(this.state.maxData.total_vaccinations.toLocaleString());
+      .text(this.state.maxData[type].toLocaleString());
 
     legend
       .append("rect")
@@ -182,11 +182,12 @@ class WorldMap extends React.Component<any, any> {
       console.log("Loading ...");
       return <div className="WorldMap"></div>;
     }
+
+    const that = this;
     const type = this.props.type;
     const maxData: any = this.state.maxData;
     console.log("Start rendering world map, type " + type);
 
-    const that = this;
     const ref: RefObject<HTMLDivElement> = React.createRef();
 
     const width = document.getElementsByClassName("WorldMap")[0].clientWidth;
@@ -208,9 +209,9 @@ class WorldMap extends React.Component<any, any> {
     const zoom = d3
       .zoom()
       .on("zoom", (event) => {
-        svg.attr("transform", event.transform);
+        svg.select("g").attr("transform", event.transform);
       })
-      .scaleExtent([0.5, 1.5]);
+      .scaleExtent([0.5, 6]);
     svg.call((d: any) => {
       zoom(d);
     });
@@ -219,7 +220,7 @@ class WorldMap extends React.Component<any, any> {
     const color: any = d3
       .scaleQuantize([0, maxData[type]], PROFILES[type].color)
       .unknown("#eeeeee");
-    this.renderLegend(PROFILES[type].color, width, height);
+    this.renderLegend(PROFILES[type].color, type, width, height);
 
     // 地图相关
     const projection = d3.geoMercator();

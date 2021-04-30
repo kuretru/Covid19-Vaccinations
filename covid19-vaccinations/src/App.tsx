@@ -2,7 +2,7 @@ import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import WorldMap from "./components/WorldMap/WorldMap";
-import { Layout, Menu, Tabs } from "antd";
+import { Layout, Menu, Tabs, Slider, Row, Col, Tag, Button } from "antd";
 import {
   ReconciliationOutlined,
   UserAddOutlined,
@@ -15,6 +15,7 @@ import {
   PayCircleOutlined,
   PercentageOutlined,
   ContactsOutlined,
+  PlayCircleOutlined,
 } from "@ant-design/icons";
 import SubMenu from "antd/lib/menu/SubMenu";
 
@@ -88,6 +89,21 @@ class App extends React.Component {
                 <Tabs defaultActiveKey="map" type="card">
                   <TabPane tab="地图" key="map">
                     <WorldMap type={this.state.type} />
+                    <Row>
+                      <Col span={2}>
+                        <Button type="text" icon={<PlayCircleOutlined />} />
+                      </Col>
+                      <Col span={2}>
+                        <Tag color="default">2020-01-28</Tag>
+                      </Col>
+                      <Col span={16}>
+                        <Slider defaultValue={30} />
+                      </Col>
+                      <Col span={2}>
+                        <Tag color="default">2021-04-30</Tag>
+                      </Col>
+                      <Col span={2}></Col>
+                    </Row>
                   </TabPane>
                   <TabPane tab="图表" key="chart">
                     图表
