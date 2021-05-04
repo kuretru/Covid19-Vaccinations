@@ -6,7 +6,7 @@ import { Select } from "antd";
 
 const { Option } = Select;
 
-const WORLD_MAP = "/data/world-map.geo.json";
+const WORLD_MAP = "/data/world-map-small.geo.json";
 
 const translate: any = Translate;
 const PROFILES: any = {
@@ -187,7 +187,7 @@ class WorldMap extends React.Component<any, any> {
       .join((enter) => {
         const p = enter.append("path");
         p.on("mouseover", function (event, d: any) {
-          const iso = d.properties.ISO_A3;
+          const iso = d.properties.iso_a3;
           d3.select(this).transition().duration(200).style("opacity", 0.6).attr("stroke", "black");
           tip.transition().duration(200).style("opacity", 0.9);
           tip.style("left", event.pageX + "px").style("top", event.pageY - 28 + "px");
@@ -220,7 +220,7 @@ class WorldMap extends React.Component<any, any> {
       })
       .attr("d", (d: any) => path(d))
       .style("fill", (d: any) => {
-        const iso: string = d.properties.ISO_A3;
+        const iso: string = d.properties.iso_a3;
         if (that.props.countryData.has(iso) && that.props.countryData.get(iso).data.length > 0) {
           const latest = that.props.countryData.get(iso).data.slice(-1)[0];
           return color(latest[that.props.type]);
