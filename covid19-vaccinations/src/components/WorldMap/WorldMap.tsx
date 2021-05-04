@@ -7,21 +7,8 @@ import { Select } from "antd";
 const { Option } = Select;
 
 const WORLD_MAP = "/data/world-map.geo.json";
-const COUNTRY_NAME = "/data/country_name.csv";
-// const ALL_DATA = "https://github.com/owid/covid-19-data/raw/master/public/data/owid-covid-data.csv";
-const ALL_DATA = "/data/owid-covid-data.csv";
 
 const translate: any = Translate;
-const TYPES = [
-  "total_cases",
-  "total_deaths",
-  "total_vaccinations",
-  "people_vaccinated",
-  "population",
-  "median_age",
-  "gdp_per_capita",
-  "life_expectancy",
-];
 const PROFILES: any = {
   total_cases: {
     color: d3.schemeOranges[9],
@@ -58,8 +45,8 @@ const PROFILES: any = {
 };
 const AREA: any = {
   world: "none",
-  asia: "translate(-3200, -680) scale(4)",
-  europe: "translate(-2590, -450) scale(4)",
+  asia: "translate(-2370, -650) scale(3.8)",
+  europe: "translate(-1720, -366) scale(3.6)",
   north_america: "translate(-670, -170) scale(2.3)",
   south_america: "translate(-1350, -760) scale(3)",
   africa: "translate(-1820, -600) scale(3)",
@@ -71,70 +58,20 @@ class WorldMap extends React.Component<any, any> {
     super(props);
     this.state = {
       isLoading: true,
-      countryData: new Map(),
-      maxData: {
-        total_cases: 0,
-        total_deaths: 0,
-        total_vaccinations: 0,
-        people_vaccinated: 0,
-        population: 0,
-        median_age: 0,
-        gdp_per_capita: 0,
-        life_expectancy: 0,
-      },
       worldMap: {},
     };
     this.fetchData();
   }
 
-  create(iso: string) {
-    if (!this.state.countryData.has(iso)) {
-      this.state.countryData.set(iso, {
-        iso: iso,
-        chinese: "",
-        data: [],
-      });
-    }
-  }
-
   fetchData() {
-    Promise.all([
-      d3.json(WORLD_MAP).then((data: any) => {
+    d3.json(WORLD_MAP)
+      .then((data: any) => {
         this.setState({ worldMap: data });
         console.log("Fetch world map done");
-      }),
-      d3.csv(COUNTRY_NAME).then((data: any) => {
-        data.forEach((element: any) => {
-          const iso: string = element.iso_code;
-          this.create(iso);
-          this.state.countryData.get(iso).chinese = element.chinese;
-        });
-        console.log("Fetch Chinese name done");
-      }),
-      d3.csv(ALL_DATA).then((data: any) => {
-        data.forEach((element: any) => {
-          const iso: string = element.iso_code;
-          this.create(iso);
-          this.state.countryData.get(iso).data.push(element);
-        });
-        console.log("Fetch all data done");
-      }),
-    ]).then(() => {
-      console.log("Start processing data");
-      this.state.countryData.forEach((element: any) => {
-        const iso: string = element.iso;
-        if (iso.startsWith("OWID_") || element.data.length === 0) {
-          return;
-        }
-        const lastDay: any = element.data.slice(-1)[0];
-        const maxData: any = this.state.maxData;
-        TYPES.forEach((element: string) => {
-          maxData[element] = Math.max(maxData[element], lastDay[element]);
-        });
+      })
+      .then(() => {
+        this.setState({ isLoading: false });
       });
-      this.setState({ isLoading: false });
-      console.log("Max data is: ", this.state.maxData);
-    });
   }
 
   handleChange = (e: any) => {
@@ -166,13 +103,13 @@ class WorldMap extends React.Component<any, any> {
       .attr("class", "label")
       .attr("x", width / 2 - 300 + 380)
       .attr("y", 20)
-      .text((this.state.maxData[type] / 2).toLocaleString());
+      .text((this.props.maxData[type] / 2).toLocaleString());
     legend
       .append("text")
       .attr("class", "label")
       .attr("x", width / 2 - 300 + 570)
       .attr("y", 20)
-      .text(this.state.maxData[type].toLocaleString());
+      .text(this.props.maxData[type].toLocaleString());
 
     legend
       .append("rect")
@@ -195,14 +132,14 @@ class WorldMap extends React.Component<any, any> {
   }
 
   render() {
-    if (this.state.isLoading) {
+    if (this.state.isLoading || !this.props.type) {
       console.log("Loading ...");
       return <div className="WorldMap"></div>;
     }
 
     const that = this;
     const type = this.props.type;
-    const maxData: any = this.state.maxData;
+    const maxData: any = this.props.maxData;
     console.log("Start rendering world map, type " + type);
 
     const ref: RefObject<HTMLDivElement> = React.createRef();
@@ -255,15 +192,15 @@ class WorldMap extends React.Component<any, any> {
           tip.transition().duration(200).style("opacity", 0.9);
           tip.style("left", event.pageX + "px").style("top", event.pageY - 28 + "px");
 
-          if (!that.state.countryData.has(iso)) {
+          if (!that.props.countryData.has(iso)) {
             return;
           }
-          tip.select("span").text(that.state.countryData.get(iso).chinese);
-          if (that.state.countryData.get(iso).data.length === 0) {
+          tip.select("span").text(that.props.countryData.get(iso).chinese);
+          if (that.props.countryData.get(iso).data.length === 0) {
             tip.append("p").text("暂无数据");
             return;
           }
-          const latest = that.state.countryData.get(iso).data.slice(-1)[0];
+          const latest = that.props.countryData.get(iso).data.slice(-1)[0];
           PROFILES[type].properties.forEach((element: any) => {
             tip
               .append("p")
@@ -284,8 +221,8 @@ class WorldMap extends React.Component<any, any> {
       .attr("d", (d: any) => path(d))
       .style("fill", (d: any) => {
         const iso: string = d.properties.ISO_A3;
-        if (that.state.countryData.has(iso) && that.state.countryData.get(iso).data.length > 0) {
-          const latest = that.state.countryData.get(iso).data.slice(-1)[0];
+        if (that.props.countryData.has(iso) && that.props.countryData.get(iso).data.length > 0) {
+          const latest = that.props.countryData.get(iso).data.slice(-1)[0];
           return color(latest[that.props.type]);
         }
         return color(NaN);

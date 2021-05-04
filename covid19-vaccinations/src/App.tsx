@@ -18,17 +18,96 @@ import {
   PlayCircleOutlined,
 } from "@ant-design/icons";
 import SubMenu from "antd/lib/menu/SubMenu";
+import * as d3 from "d3";
 
 const { Header, Footer, Sider, Content } = Layout;
 const { TabPane } = Tabs;
 
+const TYPES = [
+  "total_cases",
+  "total_deaths",
+  "total_vaccinations",
+  "people_vaccinated",
+  "population",
+  "median_age",
+  "gdp_per_capita",
+  "life_expectancy",
+];
+const COUNTRY_NAME = "/data/country_name.csv";
+// const ALL_DATA = "https://github.com/owid/covid-19-data/raw/master/public/data/owid-covid-data.csv";
+const ALL_DATA = "/data/owid-covid-data.csv";
+
 class App extends React.Component {
   state = {
-    type: "total_vaccinations",
+    countryData: new Map(),
+    maxData: {
+      total_cases: 0,
+      total_deaths: 0,
+      total_vaccinations: 0,
+      people_vaccinated: 0,
+      population: 0,
+      median_age: 0,
+      gdp_per_capita: 0,
+      life_expectancy: 0,
+    },
+    type: "",
   };
+
+  constructor(props: any) {
+    super(props);
+    this.fetchData();
+  }
+
+  create(iso: string) {
+    if (!this.state.countryData.has(iso)) {
+      this.state.countryData.set(iso, {
+        iso: iso,
+        chinese: "",
+        data: [],
+      });
+    }
+  }
+
+  fetchData() {
+    Promise.all([
+      d3.csv(COUNTRY_NAME).then((data: any) => {
+        data.forEach((element: any) => {
+          const iso: string = element.iso_code;
+          this.create(iso);
+          this.state.countryData.get(iso).chinese = element.chinese;
+        });
+        console.log("Fetch Chinese name done");
+      }),
+      d3.csv(ALL_DATA).then((data: any) => {
+        data.forEach((element: any) => {
+          const iso: string = element.iso_code;
+          this.create(iso);
+          this.state.countryData.get(iso).data.push(element);
+        });
+        console.log("Fetch all data done");
+      }),
+    ]).then(() => {
+      console.log("Start processing data");
+      this.state.countryData.forEach((element: any) => {
+        const iso: string = element.iso;
+        if (iso.startsWith("OWID_") || element.data.length === 0) {
+          return;
+        }
+        const lastDay: any = element.data.slice(-1)[0];
+        const maxData: any = this.state.maxData;
+        TYPES.forEach((element: string) => {
+          maxData[element] = Math.max(maxData[element], lastDay[element]);
+        });
+      });
+      this.setState({ type: "total_vaccinations" });
+      console.log("Max data is: ", this.state.maxData);
+    });
+  }
+
   handleClick = (e: any) => {
     this.setState({ type: e.key });
   };
+
   render() {
     return (
       <div className="App">
@@ -88,7 +167,11 @@ class App extends React.Component {
               <Content style={{ padding: "10px", minHeight: 280 }}>
                 <Tabs defaultActiveKey="map" type="card">
                   <TabPane tab="地图" key="map">
-                    <WorldMap type={this.state.type} />
+                    <WorldMap
+                      countryData={this.state.countryData}
+                      maxData={this.state.maxData}
+                      type={this.state.type}
+                    />
                     <Row>
                       <Col span={2}>
                         <Button type="text" icon={<PlayCircleOutlined />} />
