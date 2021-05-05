@@ -184,7 +184,7 @@ class App extends React.Component {
                   style={{ height: "100%" }}
                   type="card"
                 >
-                  <TabPane tab="地图" key="map" forceRender={true}>
+                  <TabPane tab="地图" key="map" forceRender={false}>
                     <WorldMap
                       countryData={this.state.countryData}
                       maxData={this.state.maxData}
@@ -207,7 +207,7 @@ class App extends React.Component {
                       <Col span={2}></Col>
                     </Row>
                   </TabPane>
-                  <TabPane tab="图表" key="chart" forceRender={true}>
+                  <TabPane tab="图表" key="chart" forceRender={false}>
                     <Row>
                       <Col span={4}>侧栏</Col>
                       <Col span={20}>
@@ -218,7 +218,7 @@ class App extends React.Component {
                       </Col>
                     </Row>
                   </TabPane>
-                  <TabPane tab="表格" key="table" forceRender={true}>
+                  <TabPane tab="表格" key="table" forceRender={false}>
                     <DataTable data={this.state.countryData}></DataTable>
                   </TabPane>
                 </Tabs>

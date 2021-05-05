@@ -144,8 +144,8 @@ class WorldMap extends React.Component<any, any> {
 
     const ref: RefObject<HTMLDivElement> = React.createRef();
 
-    const width = document.getElementsByClassName("WorldMap")[0].clientWidth;
-    const height = document.getElementsByClassName("WorldMap")[0].clientHeight;
+    const width = document.getElementsByClassName("ant-tabs-content-holder")[0].clientWidth;
+    const height = document.getElementsByClassName("ant-tabs-content-holder")[0].clientHeight;
     d3.select(".WorldMap").selectAll("svg").remove();
 
     const svg = d3
