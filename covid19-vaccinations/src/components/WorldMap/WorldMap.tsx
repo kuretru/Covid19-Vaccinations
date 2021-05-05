@@ -133,7 +133,7 @@ class WorldMap extends React.Component<any, any> {
 
   render() {
     if (this.state.isLoading || !this.props.type) {
-      console.log("Loading ...");
+      console.log("Loading WorldMap ...");
       return <div className="WorldMap"></div>;
     }
 
@@ -210,11 +210,17 @@ class WorldMap extends React.Component<any, any> {
                   (latest[element] ? parseInt(latest[element]).toLocaleString() : "暂无数据")
               );
           });
+          d3.select(".WorldMap").select("svg").style("cursor", "pointer");
         });
         p.on("mouseout", function () {
           d3.select(this).transition().duration(500).style("opacity", 1).attr("stroke", "#dddddd");
           tip.transition().duration(500).style("opacity", 0);
           tip.selectAll("p").remove();
+          d3.select(".WorldMap").select("svg").style("cursor", "auto");
+        });
+        p.on("click", function (event, d: any) {
+          const iso = d.properties.iso_a3;
+          that.props.onCountryClick(iso);
         });
         return p;
       })

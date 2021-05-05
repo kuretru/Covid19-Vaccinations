@@ -1,8 +1,7 @@
 import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import WorldMap from "./components/WorldMap/WorldMap";
-import { Layout, Menu, Tabs, Slider, Row, Col, Tag, Button } from "antd";
+import { Layout, Menu, Tabs, Slider, Row, Col, Tag, Button, Table } from "antd";
 import {
   ReconciliationOutlined,
   UserAddOutlined,
@@ -19,6 +18,9 @@ import {
 } from "@ant-design/icons";
 import SubMenu from "antd/lib/menu/SubMenu";
 import * as d3 from "d3";
+import WorldMap from "./components/WorldMap/WorldMap";
+import LineChart from "./components/LineChart/LineChart";
+import DataTable from "./components/DataTable/DataTable";
 
 const { Header, Footer, Sider, Content } = Layout;
 const { TabPane } = Tabs;
@@ -50,7 +52,10 @@ class App extends React.Component {
       gdp_per_capita: 0,
       life_expectancy: 0,
     },
+    tab: "map",
     type: "",
+    country: "",
+    tableData: [],
   };
 
   constructor(props: any) {
@@ -99,13 +104,21 @@ class App extends React.Component {
           maxData[element] = Math.max(maxData[element], lastDay[element]);
         });
       });
-      this.setState({ type: "total_vaccinations" });
+      this.setState({ type: "total_vaccinations", country: "CHN" });
       console.log("Max data is: ", this.state.maxData);
     });
   }
 
-  handleClick = (e: any) => {
+  onMenuClick = (e: any) => {
     this.setState({ type: e.key });
+  };
+
+  onCountryClick = (e: any) => {
+    this.setState({ country: e, tab: "chart", tableData: this.state.countryData.get(e).data });
+  };
+
+  onTabClick = (e: any) => {
+    this.setState({ tab: e });
   };
 
   render() {
@@ -127,7 +140,7 @@ class App extends React.Component {
               <Sider width={180}>
                 <Menu
                   mode="inline"
-                  onClick={this.handleClick}
+                  onClick={this.onMenuClick}
                   defaultOpenKeys={["epidemic", "vaccine", "others"]}
                   defaultSelectedKeys={["total_vaccinations"]}
                   style={{ height: "100%" }}
@@ -165,12 +178,18 @@ class App extends React.Component {
                 </Menu>
               </Sider>
               <Content style={{ padding: "10px", minHeight: 280 }}>
-                <Tabs defaultActiveKey="map" type="card">
-                  <TabPane tab="地图" key="map">
+                <Tabs
+                  activeKey={this.state.tab}
+                  onTabClick={this.onTabClick}
+                  style={{ height: "100%" }}
+                  type="card"
+                >
+                  <TabPane tab="地图" key="map" forceRender={true}>
                     <WorldMap
                       countryData={this.state.countryData}
                       maxData={this.state.maxData}
                       type={this.state.type}
+                      onCountryClick={this.onCountryClick}
                     />
                     <Row>
                       <Col span={2}>
@@ -188,11 +207,19 @@ class App extends React.Component {
                       <Col span={2}></Col>
                     </Row>
                   </TabPane>
-                  <TabPane tab="图表" key="chart">
-                    图表
+                  <TabPane tab="图表" key="chart" forceRender={true}>
+                    <Row>
+                      <Col span={4}>侧栏</Col>
+                      <Col span={20}>
+                        {/* <LineChart
+                          countryData={this.state.countryData}
+                          country={this.state.country}
+                        /> */}
+                      </Col>
+                    </Row>
                   </TabPane>
-                  <TabPane tab="表格" key="table">
-                    表格
+                  <TabPane tab="表格" key="table" forceRender={true}>
+                    <DataTable data={this.state.countryData}></DataTable>
                   </TabPane>
                 </Tabs>
               </Content>

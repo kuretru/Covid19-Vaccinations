@@ -1,8 +1,8 @@
 .WorldMap {
-  height: 600px;
+  height: 90%;
 }
 
-.ant-select {
+.WorldMap .ant-select {
   position: absolute;
   left: 300px;
   top: 200px;
