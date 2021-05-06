@@ -162,7 +162,7 @@ class DataTable extends React.Component<any, any> {
       options.push({ iso: value.iso, chinese: value.chinese });
     });
 
-    const width = document.getElementsByClassName("ant-tabs-content-holder")[0].clientWidth;
+    // const width = document.getElementsByClassName("ant-tabs-content-holder")[0].clientWidth;
     const height = document.getElementsByClassName("ant-tabs-content-holder")[0].clientHeight;
 
     return (

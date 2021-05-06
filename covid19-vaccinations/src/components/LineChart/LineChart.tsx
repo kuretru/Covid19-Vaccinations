@@ -1,8 +1,9 @@
 import React, { RefObject } from "react";
 import * as d3 from "d3";
-import { Select, Row, Col, Table } from "antd";
-import Translate from "../WorldMap/translate.json";
+import { Row, Col, Table } from "antd";
+import Colors from "./colors.json";
 
+const COLORS: Array<string> = Colors;
 const COLUMNS = [
   {
     title: "国家",
@@ -11,7 +12,6 @@ const COLUMNS = [
     width: 100,
   },
 ];
-const translate: any = Translate;
 
 class LineChart extends React.Component<any, any> {
   constructor(props: any) {
@@ -30,20 +30,19 @@ class LineChart extends React.Component<any, any> {
     };
   }
 
-  onTableChange = (selectedRowKeys: any, selectedRows: any) => {
+  onTableChange = (selectedRowKeys: any) => {
     let tableData: Array<object> = [...this.state.tableData];
-    for (let i in selectedRowKeys) {
-      const iso = selectedRowKeys[i];
+    selectedRowKeys.forEach((iso: any) => {
       let target: Array<object> = [];
-      for (let j in tableData) {
-        const row: any = tableData[j];
+      for (let i in tableData) {
+        const row: any = tableData[i];
         if (iso === row.iso) {
-          target = tableData.splice(parseInt(j), 1);
+          target = tableData.splice(parseInt(i), 1);
           break;
         }
       }
       tableData.unshift(target[0]);
-    }
+    });
     this.setState({ tableData: tableData, selectedCountries: selectedRowKeys });
   };
 
@@ -61,7 +60,7 @@ class LineChart extends React.Component<any, any> {
     const that = this;
 
     // 绘图
-    const margin = { top: 20, right: 20, bottom: 50, left: 80 };
+    const margin = { top: 20, right: 20, bottom: 80, left: 80 };
     const width = document.getElementsByClassName("ant-tabs-content-holder")[0].clientWidth - 400;
     const height = document.getElementsByClassName("ant-tabs-content-holder")[0].clientHeight;
 
@@ -85,31 +84,35 @@ class LineChart extends React.Component<any, any> {
     svg
       .append("g")
       .attr("class", "axis")
-      .attr(
-        "transform",
-        "translate(" + margin.left + "," + (height - margin.top - margin.bottom) + ")"
-      )
+      .attr("transform", "translate(" + margin.left + "," + (height - margin.bottom) + ")")
       .call(d3.axisBottom(xScale).tickFormat((d: any) => timeFormater(d)))
       .selectAll("text")
-      .attr("transform", "rotate(-65)");
+      .attr("transform", "rotate(-65)")
+      .attr("dx", "-4em");
     svg
       .append("g")
       .attr("class", "axis")
       .call(d3.axisLeft(yScale))
-      .attr("transform", "translate(" + margin.left + ",0)");
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // 数据
     const path = d3
       .line()
+      .defined((d: any) => d[type] && d[type] !== "")
       .x((d: any) => xScale(timeParser(d.date) as any))
       .y((d: any) => yScale(d[type]));
 
-    svg
-      .append("path")
-      .datum(data.get(country).data)
-      .attr("fill", "none")
-      .attr("stroke", "blue")
-      .attr("d", (d: any) => path(d));
+    const countries = this.state.selectedCountries;
+    for (let i in countries) {
+      svg
+        .append("path")
+        .datum(data.get(countries[i]).data.filter(path.defined()))
+        .attr("fill", "none")
+        .attr("stroke", COLORS[parseInt(i) % COLORS.length])
+        .attr("stroke-width", 2)
+        .attr("d", (d: any) => path(d))
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    }
 
     return (
       <div ref={ref}>
