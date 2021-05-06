@@ -49,24 +49,6 @@ const COLUMNS = [
     },
   },
   {
-    title: "ICU人数",
-    dataIndex: "icu_patients",
-    key: "icu_patients",
-    width: 100,
-    render: (text: string) => {
-      return text.replace(".0", "");
-    },
-  },
-  {
-    title: "住院人数",
-    dataIndex: "hosp_patients",
-    key: "hosp_patients",
-    width: 100,
-    render: (text: string) => {
-      return text.replace(".0", "");
-    },
-  },
-  {
     title: "接种人次",
     dataIndex: "total_vaccinations",
     key: "total_vaccinations",
@@ -88,6 +70,24 @@ const COLUMNS = [
     title: "完成接种人数",
     dataIndex: "people_fully_vaccinated",
     key: "people_fully_vaccinated",
+    width: 100,
+    render: (text: string) => {
+      return text.replace(".0", "");
+    },
+  },
+  {
+    title: "ICU人数",
+    dataIndex: "icu_patients",
+    key: "icu_patients",
+    width: 100,
+    render: (text: string) => {
+      return text.replace(".0", "");
+    },
+  },
+  {
+    title: "住院人数",
+    dataIndex: "hosp_patients",
+    key: "hosp_patients",
     width: 100,
     render: (text: string) => {
       return text.replace(".0", "");
@@ -133,9 +133,6 @@ class DataTable extends React.Component<any, any> {
     country: "CHN",
     pageSize: 50,
   };
-  constructor(props: any) {
-    super(props);
-  }
 
   handleChange = (e: any) => {
     this.setState({ country: e });

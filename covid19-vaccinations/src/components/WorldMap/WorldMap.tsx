@@ -145,7 +145,7 @@ class WorldMap extends React.Component<any, any> {
     const ref: RefObject<HTMLDivElement> = React.createRef();
 
     const width = document.getElementsByClassName("ant-tabs-content-holder")[0].clientWidth;
-    const height = document.getElementsByClassName("ant-tabs-content-holder")[0].clientHeight;
+    const height = document.getElementsByClassName("ant-tabs-content-holder")[0].clientHeight - 100;
     d3.select(".WorldMap").selectAll("svg").remove();
 
     const svg = d3
@@ -237,7 +237,7 @@ class WorldMap extends React.Component<any, any> {
 
     return (
       <div className="WorldMap" ref={ref}>
-        <Select defaultValue="world" onChange={this.handleChange}>
+        <Select defaultValue="world" onChange={this.handleChange} style={{ width: 100 }}>
           <Option value="world">全球</Option>
           <Option value="asia">亚洲</Option>
           <Option value="europe">欧洲</Option>
