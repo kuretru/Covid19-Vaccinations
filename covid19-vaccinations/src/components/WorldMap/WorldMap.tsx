@@ -1,8 +1,8 @@
 import React, { RefObject } from "react";
-import "./WorldMap.css";
-import Translate from "./translate.json";
 import * as d3 from "d3";
 import { Select } from "antd";
+import "./WorldMap.css";
+import Translate from "./translate.json";
 
 const { Option } = Select;
 
@@ -145,7 +145,7 @@ class WorldMap extends React.Component<any, any> {
     const ref: RefObject<HTMLDivElement> = React.createRef();
 
     const width = document.getElementsByClassName("ant-tabs-content-holder")[0].clientWidth;
-    const height = document.getElementsByClassName("ant-tabs-content-holder")[0].clientHeight - 100;
+    const height = document.getElementsByClassName("ant-tabs-content-holder")[0].clientHeight - 50;
     d3.select(".WorldMap").selectAll("svg").remove();
 
     const svg = d3

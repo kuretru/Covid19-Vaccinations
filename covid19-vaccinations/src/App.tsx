@@ -1,7 +1,7 @@
 import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { Layout, Menu, Tabs, Slider, Row, Col, Tag, Button, Table } from "antd";
+import { Layout, Menu, Tabs, Slider, Row, Col, Tag, Button } from "antd";
 import {
   ReconciliationOutlined,
   UserAddOutlined,
@@ -55,7 +55,6 @@ class App extends React.Component {
     tab: "map",
     type: "",
     country: "",
-    tableData: [],
   };
 
   constructor(props: any) {
@@ -114,7 +113,7 @@ class App extends React.Component {
   };
 
   onCountryClick = (e: any) => {
-    this.setState({ country: e, tab: "chart", tableData: this.state.countryData.get(e).data });
+    this.setState({ country: e, tab: "chart" });
   };
 
   onTabClick = (e: any) => {
@@ -208,15 +207,12 @@ class App extends React.Component {
                     </Row>
                   </TabPane>
                   <TabPane tab="图表" key="chart" forceRender={false}>
-                    <Row>
-                      <Col span={4}>侧栏</Col>
-                      <Col span={20}>
-                        {/* <LineChart
-                          countryData={this.state.countryData}
-                          country={this.state.country}
-                        /> */}
-                      </Col>
-                    </Row>
+                    <LineChart
+                      country={this.state.country}
+                      data={this.state.countryData}
+                      maxData={this.state.maxData}
+                      type={this.state.type}
+                    ></LineChart>
                   </TabPane>
                   <TabPane tab="表格" key="table" forceRender={false}>
                     <DataTable data={this.state.countryData}></DataTable>
