@@ -1,7 +1,7 @@
 import React, { RefObject } from "react";
 import * as d3 from "d3";
-import { Select, Row, Col, Button, Tag, Slider } from "antd";
-import { PlayCircleOutlined } from "@ant-design/icons";
+import { Select, Row, Col, Button, Slider } from "antd";
+import { PlayCircleOutlined, PauseCircleOutlined } from "@ant-design/icons";
 import "./WorldMap.css";
 import Translate from "./translate.json";
 
@@ -63,7 +63,9 @@ class WorldMap extends React.Component<any, any> {
     super(props);
     const max: number = Math.floor(END_DATE.getTime() / 86400000);
     this.state = {
+      buttonIcon: <PlayCircleOutlined />,
       isLoading: true,
+      isPlaying: false,
       worldMap: {},
       date: TIME_FORMATTER(new Date()),
       sliderMin: Math.floor(BEGIN_DATE.getTime() / 86400000) + 1,
@@ -85,14 +87,23 @@ class WorldMap extends React.Component<any, any> {
   }
 
   onButtonClick = (e: any) => {
-    this.setState({ sliderValue: this.state.sliderMin });
-    const timer = setInterval(() => {
-      const value: any = this.state.sliderValue;
-      if (value >= this.state.sliderMax) {
-        clearInterval(timer);
+    console.log(this.state.sliderValue);
+    console.log(this.state.sliderMax);
+    if (this.state.isPlaying) {
+      this.setState({ buttonIcon: <PlayCircleOutlined />, isPlaying: false });
+    } else {
+      this.setState({ buttonIcon: <PauseCircleOutlined />, isPlaying: true });
+      if (this.state.sliderValue + 1 >= this.state.sliderMax) {
+        this.setState({ sliderValue: this.state.sliderMin });
       }
-      this.setState({ date: TIME_FORMATTER(new Date(value * 86400000)), sliderValue: value + 1 });
-    }, 1);
+      const timer = setInterval(() => {
+        const value: any = this.state.sliderValue;
+        if (!this.state.isPlaying || value >= this.state.sliderMax) {
+          clearInterval(timer);
+        }
+        this.setState({ date: TIME_FORMATTER(new Date(value * 86400000)), sliderValue: value + 1 });
+      }, 1);
+    }
   };
 
   onSliderAfterChange = (e: any) => {
@@ -294,7 +305,7 @@ class WorldMap extends React.Component<any, any> {
         </div>
         <Row>
           <Col span={2}>
-            <Button icon={<PlayCircleOutlined />} onClick={this.onButtonClick} type="text" />
+            <Button icon={this.state.buttonIcon} onClick={this.onButtonClick} type="text" />
           </Col>
           <Col span={20}>
             <Slider
