@@ -61,10 +61,14 @@ const END_DATE: Date = new Date();
 class WorldMap extends React.Component<any, any> {
   constructor(props: any) {
     super(props);
+    const max: number = Math.floor(END_DATE.getTime() / 86400000);
     this.state = {
       isLoading: true,
       worldMap: {},
       date: TIME_FORMATTER(new Date()),
+      sliderMin: Math.floor(BEGIN_DATE.getTime() / 86400000) + 1,
+      sliderMax: max,
+      sliderValue: max - 1,
     };
     this.fetchData();
   }
@@ -80,8 +84,23 @@ class WorldMap extends React.Component<any, any> {
       });
   }
 
+  onButtonClick = (e: any) => {
+    this.setState({ sliderValue: this.state.sliderMin });
+    const timer = setInterval(() => {
+      const value: any = this.state.sliderValue;
+      if (value >= this.state.sliderMax) {
+        clearInterval(timer);
+      }
+      this.setState({ date: TIME_FORMATTER(new Date(value * 86400000)), sliderValue: value + 1 });
+    }, 1);
+  };
+
+  onSliderAfterChange = (e: any) => {
+    this.setState({ date: TIME_FORMATTER(new Date(e * 86400000)), sliderValue: e });
+  };
+
   onSliderChange = (e: any) => {
-    this.setState({ date: TIME_FORMATTER(new Date(e * 86400000)) });
+    this.setState({ sliderValue: e });
   };
 
   sliderFormatter: any = (e: any) => {
@@ -255,6 +274,11 @@ class WorldMap extends React.Component<any, any> {
       })
       .attr("stroke", "#dddddd");
 
+    const marks: any = {};
+    marks[this.state.sliderMin] = TIME_FORMATTER(new Date(this.state.sliderMin * 86400000));
+    marks[18444] = TIME_FORMATTER(new Date(18444 * 86400000)); // 2020-07-01
+    marks[18628] = TIME_FORMATTER(new Date(18628 * 86400000)); // 2021-01-01
+    marks[this.state.sliderMax] = TIME_FORMATTER(new Date(this.state.sliderMax * 86400000));
     return (
       <div>
         <div className="WorldMap" ref={ref}>
@@ -270,23 +294,20 @@ class WorldMap extends React.Component<any, any> {
         </div>
         <Row>
           <Col span={2}>
-            <Button type="text" icon={<PlayCircleOutlined />} />
+            <Button icon={<PlayCircleOutlined />} onClick={this.onButtonClick} type="text" />
           </Col>
-          <Col span={2}>
-            <Tag color="default">{TIME_FORMATTER(BEGIN_DATE)}</Tag>
-          </Col>
-          <Col span={16}>
+          <Col span={20}>
             <Slider
-              defaultValue={Math.floor(END_DATE.getTime() / 86400000) - 1}
+              defaultValue={this.state.sliderMax - 1}
               tipFormatter={this.sliderFormatter}
-              max={Math.floor(END_DATE.getTime() / 86400000)}
-              min={Math.floor(BEGIN_DATE.getTime() / 86400000) + 1}
-              onAfterChange={this.onSliderChange}
+              marks={marks}
+              max={this.state.sliderMax}
+              min={this.state.sliderMin + 1}
+              onAfterChange={this.onSliderAfterChange}
+              onChange={this.onSliderChange}
               tooltipVisible={true}
+              value={this.state.sliderValue}
             />
-          </Col>
-          <Col span={2}>
-            <Tag color="default">{TIME_FORMATTER(END_DATE)}</Tag>
           </Col>
           <Col span={2}></Col>
         </Row>
