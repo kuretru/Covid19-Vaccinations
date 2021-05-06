@@ -41,6 +41,7 @@ const ALL_DATA = "/data/owid-covid-data.csv";
 class App extends React.Component {
   state = {
     countryData: new Map(),
+    dailyData: new Map(),
     maxData: {
       total_cases: 0,
       total_deaths: 0,
@@ -61,7 +62,7 @@ class App extends React.Component {
     this.fetchData();
   }
 
-  create(iso: string) {
+  createCountry(iso: string) {
     if (!this.state.countryData.has(iso)) {
       this.state.countryData.set(iso, {
         iso: iso,
@@ -71,12 +72,18 @@ class App extends React.Component {
     }
   }
 
+  createDaily(date: string) {
+    if (!this.state.dailyData.has(date)) {
+      this.state.dailyData.set(date, new Map());
+    }
+  }
+
   fetchData() {
     Promise.all([
       d3.csv(COUNTRY_NAME).then((data: any) => {
         data.forEach((element: any) => {
           const iso: string = element.iso_code;
-          this.create(iso);
+          this.createCountry(iso);
           this.state.countryData.get(iso).chinese = element.chinese;
         });
         console.log("Fetch Chinese name done");
@@ -84,13 +91,15 @@ class App extends React.Component {
       d3.csv(ALL_DATA).then((data: any) => {
         data.forEach((element: any) => {
           const iso: string = element.iso_code;
-          this.create(iso);
+          this.createCountry(iso);
           this.state.countryData.get(iso).data.push(element);
         });
         console.log("Fetch all data done");
       }),
     ]).then(() => {
       console.log("Start processing data");
+      const beginDate: Date = new Date(2020, 0, 22);
+      const timeParser = d3.timeParse("%Y-%m-%d");
       this.state.countryData.forEach((element: any) => {
         const iso: string = element.iso;
         if (iso.startsWith("OWID_") || element.data.length === 0) {
@@ -100,6 +109,15 @@ class App extends React.Component {
         const maxData: any = this.state.maxData;
         TYPES.forEach((element: string) => {
           maxData[element] = Math.max(maxData[element], lastDay[element]);
+        });
+
+        element.data.forEach((daily: any) => {
+          const date: any = timeParser(daily.date);
+          if (date < beginDate) {
+            return;
+          }
+          this.createDaily(daily.date);
+          this.state.dailyData.get(daily.date).set(daily.iso_code, daily);
         });
       });
       this.setState({ type: "total_vaccinations", country: "CHN" });
@@ -185,6 +203,7 @@ class App extends React.Component {
                   <TabPane tab="地图" key="map" forceRender={false}>
                     <WorldMap
                       countryData={this.state.countryData}
+                      dailyData={this.state.dailyData}
                       maxData={this.state.maxData}
                       type={this.state.type}
                       onCountryClick={this.onCountryClick}

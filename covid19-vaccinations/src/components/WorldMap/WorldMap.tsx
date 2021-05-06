@@ -64,7 +64,7 @@ class WorldMap extends React.Component<any, any> {
     this.state = {
       isLoading: true,
       worldMap: {},
-      date: 0,
+      date: TIME_FORMATTER(new Date()),
     };
     this.fetchData();
   }
@@ -80,7 +80,9 @@ class WorldMap extends React.Component<any, any> {
       });
   }
 
-  onSliderChange = (e: any) => {};
+  onSliderChange = (e: any) => {
+    this.setState({ date: TIME_FORMATTER(new Date(e * 86400000)) });
+  };
 
   sliderFormatter: any = (e: any) => {
     return TIME_FORMATTER(new Date(e * 86400000));
@@ -146,11 +148,16 @@ class WorldMap extends React.Component<any, any> {
   render() {
     if (this.state.isLoading || !this.props.type) {
       console.log("Loading WorldMap ...");
-      return <div className="WorldMap"></div>;
+      return (
+        <div>
+          <div className="WorldMap"></div>
+        </div>
+      );
     }
 
     const that = this;
     const type = this.props.type;
+    const dailyData = this.props.dailyData;
     const maxData: any = this.props.maxData;
     console.log("Start rendering world map, type " + type);
 
@@ -239,9 +246,10 @@ class WorldMap extends React.Component<any, any> {
       .attr("d", (d: any) => path(d))
       .style("fill", (d: any) => {
         const iso: string = d.properties.iso_a3;
-        if (that.props.countryData.has(iso) && that.props.countryData.get(iso).data.length > 0) {
-          const latest = that.props.countryData.get(iso).data.slice(-1)[0];
-          return color(latest[that.props.type]);
+        const date: string = that.state.date;
+        if (dailyData.has(date) && dailyData.get(date).has(iso)) {
+          const value = dailyData.get(date).get(iso);
+          return color(value[that.props.type]);
         }
         return color(NaN);
       })
@@ -269,11 +277,11 @@ class WorldMap extends React.Component<any, any> {
           </Col>
           <Col span={16}>
             <Slider
-              defaultValue={Math.floor(END_DATE.getTime() / 86400000)}
+              defaultValue={Math.floor(END_DATE.getTime() / 86400000) - 1}
               tipFormatter={this.sliderFormatter}
               max={Math.floor(END_DATE.getTime() / 86400000)}
-              min={BEGIN_DATE.getTime() / 86400000}
-              onChange={this.onSliderChange}
+              min={Math.floor(BEGIN_DATE.getTime() / 86400000) + 1}
+              onAfterChange={this.onSliderChange}
               tooltipVisible={true}
             />
           </Col>
