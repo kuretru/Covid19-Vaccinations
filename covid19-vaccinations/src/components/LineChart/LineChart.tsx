@@ -57,7 +57,6 @@ class LineChart extends React.Component<any, any> {
       return <div className="LineChart"></div>;
     }
     console.log("Start rendering line chart, country " + country + ", type " + type);
-    const that = this;
 
     // 绘图
     const margin = { top: 20, right: 20, bottom: 80, left: 80 };

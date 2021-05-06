@@ -1,6 +1,7 @@
 import React, { RefObject } from "react";
 import * as d3 from "d3";
-import { Select } from "antd";
+import { Select, Row, Col, Button, Tag, Slider } from "antd";
+import { PlayCircleOutlined } from "@ant-design/icons";
 import "./WorldMap.css";
 import Translate from "./translate.json";
 
@@ -53,12 +54,17 @@ const AREA: any = {
   oceania: "translate(-5560, -1760) scale(6)",
 };
 
+const TIME_FORMATTER = d3.timeFormat("%Y-%m-%d");
+const BEGIN_DATE: Date = new Date(2020, 0, 22);
+const END_DATE: Date = new Date();
+
 class WorldMap extends React.Component<any, any> {
   constructor(props: any) {
     super(props);
     this.state = {
       isLoading: true,
       worldMap: {},
+      date: 0,
     };
     this.fetchData();
   }
@@ -73,6 +79,12 @@ class WorldMap extends React.Component<any, any> {
         this.setState({ isLoading: false });
       });
   }
+
+  onSliderChange = (e: any) => {};
+
+  sliderFormatter: any = (e: any) => {
+    return TIME_FORMATTER(new Date(e * 86400000));
+  };
 
   handleChange = (e: any) => {
     const g = d3.select(".WorldMap").select("svg").select("g");
@@ -236,16 +248,40 @@ class WorldMap extends React.Component<any, any> {
       .attr("stroke", "#dddddd");
 
     return (
-      <div className="WorldMap" ref={ref}>
-        <Select defaultValue="world" onChange={this.handleChange} style={{ width: 100 }}>
-          <Option value="world">全球</Option>
-          <Option value="asia">亚洲</Option>
-          <Option value="europe">欧洲</Option>
-          <Option value="north_america">北美洲</Option>
-          <Option value="south_america">南美洲</Option>
-          <Option value="africa">非洲</Option>
-          <Option value="oceania">大洋洲</Option>
-        </Select>
+      <div>
+        <div className="WorldMap" ref={ref}>
+          <Select defaultValue="world" onChange={this.handleChange} style={{ width: 100 }}>
+            <Option value="world">全球</Option>
+            <Option value="asia">亚洲</Option>
+            <Option value="europe">欧洲</Option>
+            <Option value="north_america">北美洲</Option>
+            <Option value="south_america">南美洲</Option>
+            <Option value="africa">非洲</Option>
+            <Option value="oceania">大洋洲</Option>
+          </Select>
+        </div>
+        <Row>
+          <Col span={2}>
+            <Button type="text" icon={<PlayCircleOutlined />} />
+          </Col>
+          <Col span={2}>
+            <Tag color="default">{TIME_FORMATTER(BEGIN_DATE)}</Tag>
+          </Col>
+          <Col span={16}>
+            <Slider
+              defaultValue={Math.floor(END_DATE.getTime() / 86400000)}
+              tipFormatter={this.sliderFormatter}
+              max={Math.floor(END_DATE.getTime() / 86400000)}
+              min={BEGIN_DATE.getTime() / 86400000}
+              onChange={this.onSliderChange}
+              tooltipVisible={true}
+            />
+          </Col>
+          <Col span={2}>
+            <Tag color="default">{TIME_FORMATTER(END_DATE)}</Tag>
+          </Col>
+          <Col span={2}></Col>
+        </Row>
       </div>
     );
   }

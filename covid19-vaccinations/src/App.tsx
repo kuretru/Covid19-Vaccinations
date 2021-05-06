@@ -1,7 +1,7 @@
 import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { Layout, Menu, Tabs, Slider, Row, Col, Tag, Button } from "antd";
+import { Layout, Menu, Tabs } from "antd";
 import {
   ReconciliationOutlined,
   UserAddOutlined,
@@ -14,7 +14,6 @@ import {
   PayCircleOutlined,
   PercentageOutlined,
   ContactsOutlined,
-  PlayCircleOutlined,
 } from "@ant-design/icons";
 import SubMenu from "antd/lib/menu/SubMenu";
 import * as d3 from "d3";
@@ -190,21 +189,6 @@ class App extends React.Component {
                       type={this.state.type}
                       onCountryClick={this.onCountryClick}
                     />
-                    <Row>
-                      <Col span={2}>
-                        <Button type="text" icon={<PlayCircleOutlined />} />
-                      </Col>
-                      <Col span={2}>
-                        <Tag color="default">2020-01-28</Tag>
-                      </Col>
-                      <Col span={16}>
-                        <Slider defaultValue={30} />
-                      </Col>
-                      <Col span={2}>
-                        <Tag color="default">2021-04-30</Tag>
-                      </Col>
-                      <Col span={2}></Col>
-                    </Row>
                   </TabPane>
                   <TabPane tab="图表" key="chart" forceRender={false}>
                     <LineChart
