@@ -103,16 +103,33 @@ class LineChart extends React.Component<any, any> {
       .y((d: any) => yScale(d[type]));
 
     const countries = this.state.selectedCountries;
+    const line = svg.append("g");
+    const legend = svg.append("g");
     for (let i in countries) {
-      svg
+      const index: number = parseInt(i);
+      line
         .append("path")
         .datum(data.get(countries[i]).data.filter(path.defined()))
         .attr("fill", "none")
-        .attr("stroke", COLORS[parseInt(i) % COLORS.length])
+        .attr("stroke", COLORS[index % COLORS.length])
         .attr("stroke-width", 2)
         .attr("d", (d: any) => path(d))
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      legend
+        .append("rect")
+        .attr("x", margin.left + 30)
+        .attr("y", margin.top + 30 + 30 * index)
+        .attr("width", 45)
+        .attr("height", 15)
+        .style("fill", COLORS[index % COLORS.length]);
+      legend
+        .append("text")
+        .attr("x", margin.left + 90)
+        .attr("y", margin.top + 40 + 30 * index)
+        .text(data.get(countries[i]).chinese);
     }
+
+    // 图例
 
     return (
       <div ref={ref}>
