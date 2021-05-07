@@ -35,8 +35,8 @@ const TYPES = [
   "life_expectancy",
 ];
 const COUNTRY_NAME = "/data/country_name.csv";
-// const ALL_DATA = "https://github.com/owid/covid-19-data/raw/master/public/data/owid-covid-data.csv";
-const ALL_DATA = "/data/owid-covid-data.csv";
+const ALL_DATA = "https://github.com/owid/covid-19-data/raw/master/public/data/owid-covid-data.csv";
+// const ALL_DATA = "/data/owid-covid-data.csv";
 
 class App extends React.Component {
   state = {
@@ -215,10 +215,10 @@ class App extends React.Component {
                       data={this.state.countryData}
                       maxData={this.state.maxData}
                       type={this.state.type}
-                    ></LineChart>
+                    />
                   </TabPane>
                   <TabPane tab="表格" key="table" forceRender={false}>
-                    <DataTable data={this.state.countryData}></DataTable>
+                    <DataTable data={this.state.countryData} />
                   </TabPane>
                 </Tabs>
               </Content>

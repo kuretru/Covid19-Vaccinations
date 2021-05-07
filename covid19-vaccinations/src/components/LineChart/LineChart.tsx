@@ -101,6 +101,7 @@ class LineChart extends React.Component<any, any> {
       .x((d: any) => xScale(timeParser(d.date) as any))
       .y((d: any) => yScale(d[type]));
 
+    // 图例
     const countries = this.state.selectedCountries;
     const line = svg.append("g");
     const legend = svg.append("g");
@@ -127,8 +128,6 @@ class LineChart extends React.Component<any, any> {
         .attr("y", margin.top + 40 + 30 * index)
         .text(data.get(countries[i]).chinese);
     }
-
-    // 图例
 
     return (
       <div ref={ref}>
