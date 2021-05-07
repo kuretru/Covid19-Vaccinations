@@ -45,13 +45,13 @@ const PROFILES: any = {
   },
 };
 const AREA: any = {
-  world: "none",
-  asia: "translate(-2370, -650) scale(3.8)",
-  europe: "translate(-1720, -366) scale(3.6)",
-  north_america: "translate(-670, -170) scale(2.3)",
-  south_america: "translate(-1350, -760) scale(3)",
-  africa: "translate(-1820, -600) scale(3)",
-  oceania: "translate(-5560, -1760) scale(6)",
+  world: { width: 0, height: 0, scale: 1 },
+  asia: { width: -1352, height: -812, scale: 3 },
+  europe: { width: -1517, height: -762, scale: 4 },
+  north_america: { width: -322, height: -312, scale: 2.3 },
+  south_america: { width: -440, height: -844, scale: 2.3 },
+  africa: { width: -685, height: -652, scale: 2.3 },
+  oceania: { width: -2150, height: -1737, scale: 4 },
 };
 
 const TIME_FORMATTER = d3.timeFormat("%Y-%m-%d");
@@ -119,9 +119,28 @@ class WorldMap extends React.Component<any, any> {
     return TIME_FORMATTER(new Date(e * 86400000));
   };
 
-  handleChange = (e: any) => {
+  onSelectChange = (e: any) => {
     const g = d3.select(".WorldMap").select("svg").select("g");
-    g.attr("transform", AREA[e]);
+    const width: number = document.getElementsByClassName("ant-tabs-content-holder")[0].clientWidth;
+    const height: number =
+      document.getElementsByClassName("ant-tabs-content-holder")[0].clientHeight - 150;
+    const scaleWidth: number = width / 961;
+    const scaleHeight: number = height / 621;
+    const area: any = AREA[e];
+    if (area.width === 0 && area.height === 0) {
+      g.attr("transform", "none");
+    } else {
+      g.attr(
+        "transform",
+        "translate(" +
+          area.width * scaleWidth +
+          "," +
+          area.height * scaleHeight +
+          ") scale(" +
+          area.scale +
+          ")"
+      );
+    }
   };
 
   renderLegend(color: ReadonlyArray<string>, type: any, width: any, height: any) {
@@ -228,8 +247,8 @@ class WorldMap extends React.Component<any, any> {
     const projection = d3.geoMercator();
     const path = d3.geoPath().projection(projection);
 
-    projection.fitSize([width, height], this.state.worldMap);
-    projection.scale(100);
+    // 地图
+    projection.fitSize([width, height - 100], this.state.worldMap);
     svg
       .append("g")
       .selectAll("path")
@@ -275,6 +294,7 @@ class WorldMap extends React.Component<any, any> {
         return p;
       })
       .attr("d", (d: any) => path(d))
+      .attr("id", (d: any) => d.properties.iso_a3)
       .style("fill", (d: any) => {
         const iso: string = d.properties.iso_a3;
         const date: string = that.state.date;
@@ -294,7 +314,7 @@ class WorldMap extends React.Component<any, any> {
     return (
       <div>
         <div className="WorldMap" ref={ref}>
-          <Select defaultValue="world" onChange={this.handleChange} style={{ width: 100 }}>
+          <Select defaultValue="world" onChange={this.onSelectChange} style={{ width: 100 }}>
             <Option value="world">全球</Option>
             <Option value="asia">亚洲</Option>
             <Option value="europe">欧洲</Option>
