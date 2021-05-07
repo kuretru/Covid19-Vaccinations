@@ -99,6 +99,7 @@ class WorldMap extends React.Component<any, any> {
       const timer = setInterval(() => {
         const value: any = this.state.sliderValue;
         if (!this.state.isPlaying || value >= this.state.sliderMax) {
+          this.setState({ buttonIcon: <PlayCircleOutlined />, isPlaying: false });
           clearInterval(timer);
         }
         this.setState({ date: TIME_FORMATTER(new Date(value * 86400000)), sliderValue: value + 1 });
